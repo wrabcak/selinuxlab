@@ -1,0 +1,64 @@
+---
+- hosts: all
+  name: Prepares a SELinux workshop
+  become: yes
+  connection: local
+  tasks:
+
+  - name: install packages
+    package:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - libselinux-python
+      - policycoreutils-python
+      - policycoreutils-devel
+      - policycoreutils-newrole
+      - selinux-policy-doc
+      - setroubleshoot-server
+      - setools-console
+      - make
+      - gcc-c++
+      - libcurl-devel.x86_64
+      - rpm-build
+
+  - name: Ensure SELinux is in enforcing mode
+    selinux:
+      policy: targeted
+      state: enforcing
+
+  - name: Create dir with working files
+    file:
+      path: /root/selinuxlab
+      state: directory
+      mode: 0755
+
+  - name: Ensure SELinux test app source is on the system
+    copy:
+      src: files/testapp.c
+      dest: /root/selinuxlab
+      mode: 0755
+
+  - name: Ensure Makefile for the test app is copied to the system
+    copy:
+      src: files/Makefile
+      dest: /root/selinuxlab
+      mode: 0755
+
+  - name: Ensure SELinux test app service file is on the system
+    copy:
+      src: files/testapp.service
+      dest: /root/selinuxlab/testapp.service
+      mode: 0644
+
+  - name: Compile the testapp
+    shell:
+      cmd: "make -f /root/selinuxlab/Makefile"
+      chdir: /root/selinuxlab
+
+  - name: Install the testapp
+    shell:
+      cmd: "make install -f /root/selinuxlab/Makefile"
+      chdir: /root/selinuxlab
+
+...
