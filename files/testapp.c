@@ -150,8 +150,8 @@ int curlUrl( const char* myOffice, size_t myUrlLength )
 
 int main()
 {
-    int ttl=20;
-    int delay=999999;
+    int ttl=999999;
+    int delay=10;
 
     pid_t pid = fork();
 
