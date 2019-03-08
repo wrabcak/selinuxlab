@@ -1,5 +1,5 @@
 all: testapp.c 
-	g++ -g -o testapp testapp.c -lcurl
+	g++ -std=c++11 -g -o testapp testapp.c -lcurl
 
 clean: 
 	rm testapp

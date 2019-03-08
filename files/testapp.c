@@ -17,12 +17,141 @@
 #include <string>
 #include <curl/curl.h>
 #define MAXHOSTNAME 256
+#define DESTURL "http://wttr.in/"
+#define DESTURLEND "?format=3"
 using namespace std;
+
+const char* offices[] = {
+    "Brisbane",
+    "Canberra",
+    "Melbourne",
+    "Perth",
+    "Sydney",
+    "Beijing",
+    "Shanghai",
+    "Shenzhen",
+    "Hong Kong",
+    "Bangalore",
+    "New%20Delhi",
+    "Kolkata",
+    "Mumbai",
+    "Pune",
+    "Jakarta",
+    "Tokyo",
+    "Nagoya",
+    "Osaka",
+    "Fukuoka",
+    "Seoul",
+    "Kuala%20Lumpur",
+    "Auckland",
+    "Wellington",
+    "Makati%20City",
+    "Singapore",
+    "Taipei",
+    "Bangkok",
+    "London",
+    "Amsterdam",
+    "Barcelona",
+    "Berlin",
+    "Brno",
+    "Brussels",
+    "Copenhagen",
+    "Berlin",
+    "Cork",
+    "Dublin",
+    "Düsseldorf",
+    "Farnborough",
+    "Frankfurt%20am%20Main",
+    "Helsinki",
+    "Madrid",
+    "Milan",
+    "Moscow",
+    "Grasbrunn",
+    "Neuchâtel",
+    "Newcastle%20Upon%20Tyne",
+    "Oslo",
+    "Prague",
+    "Puteaux",
+    "Rome",
+    "Stockholm",
+    "Stuttgart",
+    "Cherkasy",
+    "Vienna",
+    "Warsaw",
+    "Waterford",
+    "Zürich",
+    "Dubai",
+    "İstanbul",
+    "Ra’anana",
+    "Riyadh",
+    "Sandton",
+    "Buenos%20Aires",
+    "Brasília",
+    "Fortaleza",
+    "Rio%20de%20Janeiro",
+    "São%20Paulo",
+    "Santiago",
+    "Bogota",
+    "Ciudad%20de%20México",
+    "Monterrey",
+    "Lima",
+    "Montreal",
+    "Toronto",
+    "Raleigh",
+    "Boston",
+    "Ann%20Arbor",
+    "Atlanta",
+    "Washington",
+    "North Charleston",
+    "Charlotte",
+    "Chicago",
+    "San%20Francisco",
+    "New%20York",
+    "Dallas",
+    "Denver",
+    "Durham",
+    "Huntsville",
+    "Los%20Angeles",
+    "Mahwah",
+    "Minneapolis",
+    "Richmond",
+    "St.%20Louis",
+    "Sunnyvale",
+    "McLean",
+    "Westford",
+    NULL };
+
+int curlUrl( const char* myOffice, size_t myUrlLength )
+{
+    std::string fullUrl;
+    CURL *curl;
+    CURLcode res;
+
+    // create a URL from 2 constants and an office string
+    fullUrl.append( DESTURL );
+    fullUrl.append( myOffice );
+    fullUrl.append( DESTURLEND );
+    // make a C string of the same size and copy to it
+    int fullUrlSize = fullUrl.length();
+    char charFullArray[ fullUrlSize + 1 ];
+    strcpy( charFullArray,  fullUrl.c_str() );
+
+    // setup curl, grab the combined URL, and clean up
+    curl = curl_easy_init();
+    if(curl)
+    {
+        curl_easy_setopt(curl, CURLOPT_URL, charFullArray);
+        res = curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+    }
+
+    return res;
+} 
 
 int main()
 {
-    int ttl=999999;
-    int delay=5;
+    int ttl=20;
+    int delay=10;
 
     pid_t pid = fork();
 
@@ -31,38 +160,40 @@ int main()
         // child process
         openlog("testapp",LOG_PID,LOG_DAEMON);
 
-        while( 1 )
+        // iterate over the list of Red Hat offices and get the weather for each
+        for ( int i=0; offices[i] != NULL; i++ )
         {
-            syslog(LOG_NOTICE,"daemon ttl %d",ttl);
+            curlUrl( ( "http://wttr.in?%sformat=3", offices[i]), sizeof( ( "http://wttr.in?%sformat=3", offices[i]) ) );
             sleep(delay);
-            ttl-=delay;
         }
-        syslog(LOG_NOTICE,"daemon ttl expired");
+
+        syslog(LOG_NOTICE,"testapp child process ended");
         closelog();
         return(EXIT_SUCCESS);
     }
     if (pid > 0)
     {
+        // parent process
         string filename = "/var/run/testapp.pid";
         ofstream o(filename.c_str());
         o << pid << endl;
 
         ifstream meminfo;
-	    meminfo.open("/proc/meminfo");
+        meminfo.open("/proc/meminfo");
         meminfo.close();
 
-        CURL *curl;
-        CURLcode res;
+        openlog("testapp",LOG_PID,LOG_DAEMON);
 
-        curl = curl_easy_init();
-        if(curl) {
-            curl_easy_setopt(curl, CURLOPT_URL, "lukas-vrabec.com");
-            res = curl_easy_perform(curl);
-            /* always cleanup */
-            curl_easy_cleanup(curl);
-        }
+        do
+        {
+            syslog(LOG_NOTICE,"daemon ttl %d",ttl);
+            sleep(delay);
+            ttl-=delay;
+        } while ( ttl > 0 );
+        syslog(LOG_NOTICE,"daemon ttl expired");
 
-        syslog(LOG_NOTICE,"testapp parent process");
+        syslog(LOG_NOTICE,"testapp parent process ended");
+        closelog();
         return(EXIT_SUCCESS);
     }
 }
