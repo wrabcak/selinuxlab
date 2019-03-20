@@ -184,13 +184,14 @@ int main()
 
         openlog("testapp",LOG_PID,LOG_DAEMON);
 
+        /* disabling this due to startup timeout
         do
         {
             syslog(LOG_NOTICE,"daemon ttl %d",ttl);
             sleep(delay);
             ttl-=delay;
         } while ( ttl > 0 );
-        syslog(LOG_NOTICE,"daemon ttl expired");
+        syslog(LOG_NOTICE,"daemon ttl expired");*/
 
         syslog(LOG_NOTICE,"testapp parent process ended");
         closelog();
