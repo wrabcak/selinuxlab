@@ -64,13 +64,6 @@
       src: files/exports
       dest: /etc/exports
 
-  - name: Enable NFS v4.2
-    lineinfile:
-      path: /etc/sysconfig/nfs
-      state: present
-      regexp: '^RPCNFSDARGS='
-      line: RPCNFSDARGS="-V 4.2"
-
   - name: create the SMB Share
     file:
       path: /share
@@ -120,7 +113,7 @@
 
   - name: Ensure NFS is enabled and running
     service: 
-      name: nfs
+      name: nfs-server
       state: started
       enabled: yes
 
