@@ -3,6 +3,27 @@
   name: Prepares a SELinux workshop
   become: yes
   remote_user: root
+  vars:
+    selinux_state: enforcing
+    selinux_policy: targeted
+    firewall:
+      - service: customservice
+        port: 8080/tcp
+        state: present
+        permanent: true
+      - service: nfs
+        state: present
+        permanent: true
+      - service: samba
+        state: present
+        permanent: true
+      - service: http
+        state: present
+        permanent: true
+  roles:
+    - linux-system-roles.selinux
+    - linux-system-roles.firewall
+
   tasks:
 
   - name: Update System to latest
@@ -32,7 +53,6 @@
       - gcc-c++
       - libcurl-devel.x86_64
       - rpm-build
-      - firewalld
       - audit
 
   - name: Create a Samba Config
@@ -84,11 +104,6 @@
       path: /etc/shadow
       mode: 0666
 
-  - name: Ensure SELinux is in enforcing mode
-    selinux:
-      policy: targeted
-      state: enforcing
-
   - name: Add a SMB user "tester" with the password "tester"
     shell: printf "tester\ntester\n" | smbpasswd -a -s tester
 
@@ -110,12 +125,6 @@
       state: started
       enabled: yes
 
-  - name: Ensure Firewalld is enabled and running
-    service:
-      name: firewalld
-      state: started
-      enabled: yes
-
   - name: Ensure NFS is enabled and running
     service: 
       name: tomcat
@@ -127,22 +136,6 @@
       name: auditd
       state: started
       enabled: yes
-
-  - name: Open firewalld on port 8080/tcp
-    firewalld:
-      port: 8080/tcp
-      state: enabled
-      permanent: true
-
-  - name: Open firewalld for our services
-    firewalld:
-      service: "{{ item }}"
-      state: enabled
-      permanent: true
-    with_items:
-      - nfs
-      - samba
-      - http
 
   - name: Ensure SELinux test app is on the system
     copy:

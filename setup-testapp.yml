@@ -3,7 +3,14 @@
   name: Prepares a SELinux workshop
   become: yes
   connection: local
+  vars:
+    selinux_policy: targeted
+    selinux_state: enforcing
   tasks:
+
+  - name: Reapply the role
+    include_role:
+        name: linux-system-roles.selinux
 
   - name: install packages
     package:
@@ -20,11 +27,6 @@
       - gcc-c++
       - libcurl-devel.x86_64
       - rpm-build
-
-  - name: Ensure SELinux is in enforcing mode
-    selinux:
-      policy: targeted
-      state: enforcing
 
   - name: Create dir with working files
     file:
