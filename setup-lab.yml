@@ -36,8 +36,6 @@
       name: "{{ item }}"
       state: present
     with_items:
-      - libselinux-python
-      - policycoreutils-python
       - policycoreutils-devel
       - policycoreutils-newrole
       - selinux-policy-doc
@@ -54,6 +52,7 @@
       - libcurl-devel.x86_64
       - rpm-build
       - audit
+      - udica
 
   - name: Create a Samba Config
     copy:
